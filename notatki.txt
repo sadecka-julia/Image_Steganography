@@ -1,0 +1,12 @@
+---------NUMPY---------
+a.ndim - number of dimension (ile jest wymiarów)
+a.shape - jaki jest rozmiar np (3x4)
+a.size - wielkość
+a.dtype - data type (jaki jest rodzaj danych)
+
+utworzenie tabeli
+np.zeros(2) - uworzy tabelę z samymi zerami o rozmiarze 2
+np.ones(2)
+np.empty(2)
+np.arange(4) - utworzy tabelę zapełnioną liczbami od 0 do 3
+np.arange(2, 9, 2) - (pierwsza, ostatnia, rozmiar kroku) --> [2, 4, 6, 8]
