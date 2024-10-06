@@ -21,14 +21,8 @@ def convertToBinary(message):
     for b in table_of_bin:
         message_in_binary += b
 
-# DO USUNIĘCIA - kod sprawdzający
-    # print("Message in binary: ", message_in_binary)
-    
-    # for number in table_of_bin:
-    #     print(type(number))
-    #     print(number)
-    print(len(message))
-    print(len(message_in_binary))
+    # print(len(message))
+    # print(len(message_in_binary))
     return table_of_bin, message_in_binary
 
 def convertToString(message_in_binary):
@@ -40,7 +34,7 @@ def convertToString(message_in_binary):
     for i in table_of_strings:
         message += i
 
-    print(message)
+    # print(message)
     return message
 
 
