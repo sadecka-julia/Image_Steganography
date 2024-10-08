@@ -34,8 +34,22 @@ def convertToString(message_in_binary):
     # print(message)
     return message
 
+# Wczytanie obrazu, podzielenie go na bloki 8x8
 def prepareImage(path):
     img = Image.open(path)
     if not img.mode == 'RGB':
         img = img.convert('RGB')  # pozniej przy zapisywaniu .save("nazwa.jpg", "JPEG")
+    img = np.array(img)
+    print(img.strides)
+    img = img[:img.shape[0] - img.shape[0] % 8, :img.shape[1] - img.shape[1] % 8]  
+    blocks = np.lib.stride_tricks.as_strided(img, 
+                                    shape=(img.shape[0]//8, img.shape[1]//8, 8, 8, 3), 
+                                    strides=(img.strides[1]*8, img.strides[2]*8, stride_h, stride_w, 1))
+    return blocks
+
+
+if __name__ == '__main__':
+    path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/photo.jpg'
+    prepareImage(path)
+
 
