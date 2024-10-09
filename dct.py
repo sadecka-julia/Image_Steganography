@@ -1,4 +1,5 @@
 from PIL import Image
+from scipy.fftpack import fft, dct
 import numpy as np
 
 def convertToBinary(message):
@@ -40,16 +41,24 @@ def prepareImage(path):
     if not img.mode == 'RGB':
         img = img.convert('RGB')  # pozniej przy zapisywaniu .save("nazwa.jpg", "JPEG")
     img = np.array(img)
-    print(img.strides)
+    height, width, channels = img.shape
+    height_skip, width_skip = img.strides[:2]
+    print(img.shape)
+    print(img.strides, height_skip, width_skip)
     img = img[:img.shape[0] - img.shape[0] % 8, :img.shape[1] - img.shape[1] % 8]  
     blocks = np.lib.stride_tricks.as_strided(img, 
-                                    shape=(img.shape[0]//8, img.shape[1]//8, 8, 8, 3), 
-                                    strides=(img.strides[1]*8, img.strides[2]*8, stride_h, stride_w, 1))
+                                    shape=(height//8, width//8, 8, 8, channels), 
+                                    strides=(height_skip*8, width_skip*8, height_skip, width_skip, 1))
+    print(blocks.shape, blocks.strides)
+    print(blocks)
     return blocks
+
+def dctTransformation(blocks):
+    
 
 
 if __name__ == '__main__':
-    path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/photo.jpg'
+    path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/16x8_mem.png'
     prepareImage(path)
 
 
