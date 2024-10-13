@@ -72,10 +72,30 @@ def prepareImage(path):
     sub_blocks = np.vectorize(subtraction)
     blocks = sub_blocks(blocks)
     print(blocks)
-
-
  
     return blocks
+
+def zigZagEncoding(block):
+    i, j = 0
+    new_table = []
+    while i!=7 and j!=7:
+        new_table.append(block[i, j])
+        if i == 0 and j%2==0:
+            j += 1
+            continue
+        elif j==0 and i%2==1:
+            i += 1
+            continue
+        elif (i-j)%2 ==0:
+            j+=1
+            i-=1
+            continue
+        elif (i-j)%2 ==1:
+            j-=1
+            i+=1
+            continue
+    return new_table
+
 
 def dctTransformation(blocks):
     lumi_quant_table = [[16, 11, 10, 16, 24, 40, 51, 61], 
@@ -87,7 +107,7 @@ def dctTransformation(blocks):
                         [49, 64, 78, 87, 103, 121, 120, 101],
                         [72, 92, 95, 98, 112, 100, 103, 99]]
     lumi_quant_table = np.array(lumi_quant_table)
-    print(type(lumi_quant_table[0, 0]))
+    # print(type(lumi_quant_table[0, 0]))
     
     chrom_quant_table = [[17, 18, 24, 47, 99, 99, 99, 99], 
                          [18, 21, 26, 66, 99, 99, 99, 99], 
@@ -106,12 +126,12 @@ def dctTransformation(blocks):
         for j in range(0, width):
             for channel in range(3):
                 # print("halo")
-                print(channel, type(channel))
+                # print(channel, type(channel))
                 if channel == 0:
                     block = blocks[i, j, :, :, channel]
                     # print(block)
                     dct_block = dct(dct(block.T, norm='ortho').T, norm='ortho')
-                    print(dct_block)
+                    # print(dct_block)
                     dct_blocks[i, j, :, :, channel] = dct_block
                     for k in range(0, 8):
                         for l in range(0, 8):
@@ -120,7 +140,7 @@ def dctTransformation(blocks):
                     block = blocks[i, j, :, :, channel]
                     # print(block)
                     dct_block = dct(dct(block.T, norm='ortho').T, norm='ortho')
-                    print(dct_block)
+                    # print(dct_block)
                     dct_blocks[i, j, :, :, channel] = dct_block
                     for k in range(0, 8):
                         for l in range(0, 8):
@@ -131,26 +151,26 @@ def dctTransformation(blocks):
     # print(dct_blocks.shape, dct_blocks.strides, dct_blocks.itemsize)
     return dct_blocks
 
-def quantization(dct_blocks):
-    lumi_quant_table = [[16, 11, 10, 16, 24, 40, 51, 61], 
-                        [12, 12, 14, 19, 26, 58, 60, 55],
-                        [14, 13, 16, 24, 40, 57, 69, 56],
-                        [14, 17, 22, 29, 51, 87, 80, 62],
-                        [18, 22, 37, 56, 68, 109, 103, 77],
-                        [24, 35, 55, 64, 81, 104, 113, 92],
-                        [49, 64, 78, 87, 103, 121, 120, 101],
-                        [72, 92, 95, 98, 112, 100, 103, 99]]
+# def quantization(dct_blocks):
+#     lumi_quant_table = [[16, 11, 10, 16, 24, 40, 51, 61], 
+#                         [12, 12, 14, 19, 26, 58, 60, 55],
+#                         [14, 13, 16, 24, 40, 57, 69, 56],
+#                         [14, 17, 22, 29, 51, 87, 80, 62],
+#                         [18, 22, 37, 56, 68, 109, 103, 77],
+#                         [24, 35, 55, 64, 81, 104, 113, 92],
+#                         [49, 64, 78, 87, 103, 121, 120, 101],
+#                         [72, 92, 95, 98, 112, 100, 103, 99]]
     
-    chrom_quant_table = [[17, 18, 24, 47, 99, 99, 99, 99], 
-                         [18, 21, 26, 66, 99, 99, 99, 99], 
-                         [24, 26, 56, 99, 99, 99, 99, 99], 
-                         [47, 66, 99, 99, 99, 99, 99, 99],
-                         [99, 99, 99, 99, 99, 99, 99, 99],
-                         [99, 99, 99, 99, 99, 99, 99, 99], 
-                         [99, 99, 99, 99, 99, 99, 99, 99], 
-                         [99, 99, 99, 99, 99, 99, 99, 99]]
-    y, cb, cr = dct_blocks[:, :, :, :, 0], dct_blocks[:, :, :, :, 1], dct_blocks[:, :, :, :, 2]
-    print(y)
+#     chrom_quant_table = [[17, 18, 24, 47, 99, 99, 99, 99], 
+#                          [18, 21, 26, 66, 99, 99, 99, 99], 
+#                          [24, 26, 56, 99, 99, 99, 99, 99], 
+#                          [47, 66, 99, 99, 99, 99, 99, 99],
+#                          [99, 99, 99, 99, 99, 99, 99, 99],
+#                          [99, 99, 99, 99, 99, 99, 99, 99], 
+#                          [99, 99, 99, 99, 99, 99, 99, 99], 
+#                          [99, 99, 99, 99, 99, 99, 99, 99]]
+#     y, cb, cr = dct_blocks[:, :, :, :, 0], dct_blocks[:, :, :, :, 1], dct_blocks[:, :, :, :, 2]
+#     print(y)
     # for i in range(0, )
 
 
@@ -158,7 +178,7 @@ def quantization(dct_blocks):
 
 
 if __name__ == '__main__':
-    path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/16x16_mem.png'
+    path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/mem.png'
     blocks = prepareImage(path)
     dct_blocks = dctTransformation(blocks)
     # quantization(dct_blocks)
