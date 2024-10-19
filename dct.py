@@ -1,6 +1,8 @@
 from PIL import Image
 from scipy.fftpack import fft, dct
 import numpy as np
+import huffman
+from collections import Counter
 
 def convertToBinary(message):
     table_of_bin = []
@@ -95,17 +97,28 @@ def zigZagEncoding(block):
 def runLenghtEncoding(block):
     zero_flag = 0
     block_after_run_lenght = []
-    for i in range(0, 63):
+    for i in range(1, 63):
         if block[i] == 0:
             zero_flag += 1
         else:
-            block_after_run_lenght.append([zero_flag, 0, int(block[i])])
+            block_after_run_lenght.append([zero_flag, int(block[i])])
             zero_flag = 0
     if zero_flag > 0:
-        block_after_run_lenght.append('EOB')
+        block_after_run_lenght.append([0, 0])
     return block_after_run_lenght
 
 
+def creatingHuffmanTree(table):
+    freq_table = huffman.codebook(Counter(table).items())
+    return freq_table
+
+def huffmanEncoding(freq_table, table):
+    print(np.size(table), table.shape, table.shape[0])
+    new_table = table.reshape(table.size)
+    encoded_data = ''
+    for symbol in new_table:
+        encoded_data += freq_table[symbol]
+    return encoded_data
 
 
 def dctTransformation(blocks):
@@ -131,10 +144,10 @@ def dctTransformation(blocks):
     
     height, width = blocks.shape[:2]
     zigzag_table = np.zeros((height, width, 3, 64), dtype=np.int16)
-    print(zigzag_table)
     prev_dc_value = [0, 0, 0]
     dct_blocks = np.zeros_like(blocks)
-    run_length_table = []
+    ac_table = []
+    dc_table = []
     for i in range(0, height):
         for j in range(0, width):
             for channel in range(3):
@@ -154,14 +167,16 @@ def dctTransformation(blocks):
                     # print("Block, channel: ", channel, "\n", block)
                 new_dc_value = dct_blocks[i, j, 0, 0, channel]
                 # print("Sprawdzenie dc value: ", dct_blocks[i, j, 0, 0, channel], "Prev dc value: ", prev_dc_value[channel])
-                dct_blocks[i, j, 0, 0, channel] -= prev_dc_value[channel] 
+                dc_diff = dct_blocks[i, j, 0, 0, channel] - prev_dc_value[channel] 
                 prev_dc_value[channel] = new_dc_value
+                dc_table.append(dc_diff)
 
                 block = dct_blocks[i, j, :, :, channel]
                 # print("Block, channel: ", channel, "\n", block)
-                new_zigzag_represeantation = zigZagEncoding(block)
-                zigzag_table[i, j, channel] = runLenghtEncoding(new_zigzag_represeantation) #zigzag table będzie niepotrzebna
-                print(runLenghtEncoding(new_zigzag_represeantation))
+                new_zigzag_representation = zigZagEncoding(block)
+                # zigzag_table[i, j, channel] = runLenghtEncoding(new_zigzag_represeantation) #zigzag table będzie niepotrzebna
+                ac_table.append(runLenghtEncoding(new_zigzag_representation))
+                # print(runLenghtEncoding(new_zigzag_representation))
                 
 
                 
@@ -172,7 +187,21 @@ def dctTransformation(blocks):
                 # print(dct_blocks)
     # print("In dct Transformation, dct blocks: \n", dct_blocks)
     # print(dct_blocks.shape, dct_blocks.strides, dct_blocks.itemsize)
-    print(zigzag_table)
+    # print(zigzag_table)
+    dc_table = np.array(dc_table)
+    # print("DC table ", dc_table)
+    # print("AC table ", ac_table)
+    dc_freq_table = creatingHuffmanTree(dc_table)
+    dc_encoded_data = huffmanEncoding(dc_freq_table, dc_table)
+    # print("Huffman tree: ", dc_freq_table, "\nEncoded data: ", dc_encoded_data)
+    element_ac_array = np.array([item for sublist in ac_table for item in sublist])
+    ac_array = np.reshape(element_ac_array, np.size(element_ac_array))
+    # print("AC table ", ac_array, np.size(ac_array), np.shape(ac_array))
+    ac_freq_table = creatingHuffmanTree(ac_array)
+    ac_encoded_data = huffmanEncoding(ac_freq_table, element_ac_array)
+    print("Huffman tree: ", ac_freq_table, "\nEncoded data: ", ac_encoded_data)
+
+
     return dct_blocks   
 
 
