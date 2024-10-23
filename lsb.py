@@ -46,8 +46,8 @@ def convertToString(message_in_binary):
 def convertImage(path):
     img = Image.open(path)
     numpy_img = np.array(img)
-    print(numpy_img.shape, numpy_img.ndim, numpy_img.dtype)
-    return numpy_img
+    # print(numpy_img.shape, numpy_img.ndim, numpy_img.dtype)
+    return img, numpy_img
 
 
 '''Koduje w obrazie ukrytą wiadomość, robi to ukrywając bity wiadomości w najmniej znaczących bitach pikseli
@@ -58,7 +58,7 @@ def lsbCoding(img, message):
     shape = img.shape     # Kształt obrazu, potrzebny, aby później przywrócić obraz do tego kształtu
     size = img.size       # Rozmiar obrazu
     resized_img = img.reshape(1, size)  # Zmienia macierz obrazu, aby była była jednowymiarowa
-    print(img)
+    # print(img)
     pixel = 0              # Przemieszczamy się po kolejnych wartościach pikseli 
     for bit in range(0, len(message)-1):
         if message[bit] == '0':
@@ -75,7 +75,8 @@ def lsbCoding(img, message):
 
 
 # Odkodowuje wiadomość z obrazu
-def lsbDecoding(img):
+def lsbDecoding(img_path):
+    _, img = convertImage(img_path)
     message = ''
     resized_img = img.reshape(1, img.size)
     size_of_text = ''
@@ -100,27 +101,42 @@ def lsbDecoding(img):
             print("Błąd")
     return message[49:] # Zostaje zwrócona wiadomość w postaci bitowej (bez długości wiadomości)
 
-    
+
+def codeExampleMessage(path):
+    message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc at arcu lorem. Pellentesque iaculis, odio non volutpat consequat, velit lectus vehicula ipsum, a maximus metus tortor et metus. Donec massa elit, viverra id dignissim in, dignissim at ex. Suspendisse in faucibus nibh. Proin pretium sodales ante ut ultricies. Mauris vel diam iaculis, finibus tellus sit amet, convallis diam. Pellentesque et felis aliquam, finibus dolor at, commodo odio. In fringilla imperdiet lectus, eu rutrum ligula pulvinar nec. Sed malesuada tellus in sapien pellentesque pulvinar. Ut quis metus faucibus elit pretium aliquam. Vestibulum at nulla et risus tristique tincidunt. Nunc porttitor et eros feugiat consectetur. Suspendisse mauris elit, ultrices non risus nec, aliquet pretium purus. Vestibulum dignissim urna eget egestas porta. Aenean eget eros dapibus, fringilla nisi vel, tincidunt ex. Integer vitae vulputate nisi. Cras egestas sem lorem, vel maximus metus ultricies ac. Praesent lobortis egestas dignissim. Etiam porttitor faucibus erat. Curabitur dapibus sem at faucibus facilisis.Maecenas congue odio sed ultricies consectetur. Nullam venenatis orci ac diam maximus, nec elementum erat fermentum. Nullam nisl nibh, luctus id blandit at, luctus eu purus. Duis ultrices, velit eu consequat semper, arcu nisl dapibus elit, commodo egestas ante odio vitae justo. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse libero lectus, condimentum a eleifend pellentesque, ultrices a mi. Nam eu mi vehicula, porttitor eros varius, dictum justo. In fringilla vel purus eu ultrices. Donec imperdiet, nulla eget aliquam aliquet, diam eros iaculis erat, at venenatis nunc magna sollicitudin erat. Donec diam odio, hendrerit nec fermentum eu, fermentum non eros. Suspendisse sit amet augue nibh. Suspendisse eget magna at orci malesuada porttitor id et eros."
+    _, message_in_binary = convertToBinary(message)
+    _, img = convertImage(path)
+    _, stego_img = lsbCoding(img, message_in_binary)
+    return stego_img
+
+def codeInputMessage():
+    message = input("Enter message to code in the image: \n")
+    _, message_in_binary = convertToBinary(message)
+    _, img = convertImage(path)
+    _, stego_img = lsbCoding(img, message_in_binary)
+    return stego_img
+
+
 if __name__ == '__main__':
-    message1 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc at arcu lorem. Pellentesque iaculis, odio non volutpat consequat, velit lectus vehicula ipsum, a maximus metus tortor et metus. Donec massa elit, viverra id dignissim in, dignissim at ex. Suspendisse in faucibus nibh. Proin pretium sodales ante ut ultricies. Mauris vel diam iaculis, finibus tellus sit amet, convallis diam. Pellentesque et felis aliquam, finibus dolor at, commodo odio. In fringilla imperdiet lectus, eu rutrum ligula pulvinar nec. Sed malesuada tellus in sapien pellentesque pulvinar. Ut quis metus faucibus elit pretium aliquam. Vestibulum at nulla et risus tristique tincidunt. Nunc porttitor et eros feugiat consectetur. Suspendisse mauris elit, ultrices non risus nec, aliquet pretium purus. Vestibulum dignissim urna eget egestas porta. Aenean eget eros dapibus, fringilla nisi vel, tincidunt ex. Integer vitae vulputate nisi. Cras egestas sem lorem, vel maximus metus ultricies ac. Praesent lobortis egestas dignissim. Etiam porttitor faucibus erat. Curabitur dapibus sem at faucibus facilisis.Maecenas congue odio sed ultricies consectetur. Nullam venenatis orci ac diam maximus, nec elementum erat fermentum. Nullam nisl nibh, luctus id blandit at, luctus eu purus. Duis ultrices, velit eu consequat semper, arcu nisl dapibus elit, commodo egestas ante odio vitae justo. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse libero lectus, condimentum a eleifend pellentesque, ultrices a mi. Nam eu mi vehicula, porttitor eros varius, dictum justo. In fringilla vel purus eu ultrices. Donec imperdiet, nulla eget aliquam aliquet, diam eros iaculis erat, at venenatis nunc magna sollicitudin erat. Donec diam odio, hendrerit nec fermentum eu, fermentum non eros. Suspendisse sit amet augue nibh. Suspendisse eget magna at orci malesuada porttitor id et eros."
+    # message1 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc at arcu lorem. Pellentesque iaculis, odio non volutpat consequat, velit lectus vehicula ipsum, a maximus metus tortor et metus. Donec massa elit, viverra id dignissim in, dignissim at ex. Suspendisse in faucibus nibh. Proin pretium sodales ante ut ultricies. Mauris vel diam iaculis, finibus tellus sit amet, convallis diam. Pellentesque et felis aliquam, finibus dolor at, commodo odio. In fringilla imperdiet lectus, eu rutrum ligula pulvinar nec. Sed malesuada tellus in sapien pellentesque pulvinar. Ut quis metus faucibus elit pretium aliquam. Vestibulum at nulla et risus tristique tincidunt. Nunc porttitor et eros feugiat consectetur. Suspendisse mauris elit, ultrices non risus nec, aliquet pretium purus. Vestibulum dignissim urna eget egestas porta. Aenean eget eros dapibus, fringilla nisi vel, tincidunt ex. Integer vitae vulputate nisi. Cras egestas sem lorem, vel maximus metus ultricies ac. Praesent lobortis egestas dignissim. Etiam porttitor faucibus erat. Curabitur dapibus sem at faucibus facilisis.Maecenas congue odio sed ultricies consectetur. Nullam venenatis orci ac diam maximus, nec elementum erat fermentum. Nullam nisl nibh, luctus id blandit at, luctus eu purus. Duis ultrices, velit eu consequat semper, arcu nisl dapibus elit, commodo egestas ante odio vitae justo. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse libero lectus, condimentum a eleifend pellentesque, ultrices a mi. Nam eu mi vehicula, porttitor eros varius, dictum justo. In fringilla vel purus eu ultrices. Donec imperdiet, nulla eget aliquam aliquet, diam eros iaculis erat, at venenatis nunc magna sollicitudin erat. Donec diam odio, hendrerit nec fermentum eu, fermentum non eros. Suspendisse sit amet augue nibh. Suspendisse eget magna at orci malesuada porttitor id et eros."
     message = 'a a1'
     table_of_bin, message_in_binary = convertToBinary(message)
-    print(table_of_bin, message_in_binary)
-    print(convertToString("10010001100101110110011011001101111"))
+    # print(table_of_bin, message_in_binary)
+    # print(convertToString("10010001100101110110011011001101111"))
     message_in_binary1 = convertToString(message_in_binary)
 
-    print("Przetlumaczona wiadomosc: ", message_in_binary1)
+    # print("Przetlumaczona wiadomosc: ", message_in_binary1)
     path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/photo.jpg'
 
 
     # starter = np.zeros((10, 10, 3)) # 42 znaki
-    img = convertImage(path)
+    _, img = convertImage(path)
     img_with_info, stego_img = lsbCoding(img, message_in_binary)
     stego_img.save("wiadomosc1.png")
     # np.set_printoptions(threshold=sys.maxsize)
     # print("Img with info\n", img_with_info[0:1, 0:15])
     stego_path = 'D:\STUDIA\Cyberka\Inzynierka\wiadomosc1.png' # jpg zmienia obraz, że nie da się późneij go odczytać
-    stego = convertImage(stego_path)
+    _, stego = convertImage(stego_path)
     # stego = np.array(stego_img)
-    hide_massage = lsbDecoding(stego)
+    hide_massage = lsbDecoding(stego_path)
     print(convertToString(hide_massage))
