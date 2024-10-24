@@ -21,8 +21,6 @@ def convertToBinary(message):
     for b in table_of_bin:
         message_in_binary += b
 
-    # print(len(message))
-    # print(len(message_in_binary))
     return table_of_bin, message_in_binary
 
 def convertToString(message_in_binary):
@@ -34,7 +32,6 @@ def convertToString(message_in_binary):
     for i in table_of_strings:
         message += i
 
-    # print(message)
     return message
 
 # Wczytanie obrazu, podzielenie go na bloki 8x8
@@ -60,88 +57,12 @@ def prepareImage(path):
  
     return blocks
 
-# Funkcja implementująca zig zag encoding - dzięki temu można odczytać bloki jako ciąg wartości
-def zigZagEncoding(block):
-    i, j = 0, 0
-    new_table = []
-    flag = True
-    while(flag):
-        new_table.append(block[i, j])
-
-        if i == 7 and j == 7:
-            flag = False
-        elif i == 0 and j%2==0:
-            j += 1
-            continue
-        elif i==7 and j%2==0:
-            j+=1
-            continue
-        elif j==0 and i%2==1:
-            i += 1
-            continue
-        elif j==7 and i%2==1:
-            i += 1
-            continue
-        elif (i-j)%2 ==0:
-            j+=1
-            i-=1
-            continue
-        elif (i-j)%2 ==1:
-            j-=1
-            i+=1
-            continue
-        else:
-            print("Error")
-    return new_table
-
-def runLenghtEncoding(block):
-    zero_flag = 0
-    block_after_run_lenght = []
-    for i in range(1, 63):
-        if block[i] == 0:
-            zero_flag += 1
-        else:
-            block_after_run_lenght.append([zero_flag, int(block[i])])
-            zero_flag = 0
-    if zero_flag > 0:
-        block_after_run_lenght.append([0, 0])
-    return block_after_run_lenght
+def hideMessageInDCT(dct_blocks, message):
+    bits_message = convertToBinary(message)
 
 
-def creatingHuffmanTree(table):
-    freq_table = huffman.codebook(Counter(table).items())
-    return freq_table
 
-def huffmanEncoding(freq_table, table):
-    print(np.size(table), table.shape, table.shape[0])
-    new_table = table.reshape(table.size)
-    encoded_data = ''
-    for symbol in new_table:
-        encoded_data += freq_table[symbol]
-    return encoded_data
-
-
-def dctTransformation(blocks):
-    lumi_quant_table = [[16, 11, 10, 16, 24, 40, 51, 61], 
-                        [12, 12, 14, 19, 26, 58, 60, 55],
-                        [14, 13, 16, 24, 40, 57, 69, 56],
-                        [14, 17, 22, 29, 51, 87, 80, 62],
-                        [18, 22, 37, 56, 68, 109, 103, 77],
-                        [24, 35, 55, 64, 81, 104, 113, 92],
-                        [49, 64, 78, 87, 103, 121, 120, 101],
-                        [72, 92, 95, 98, 112, 100, 103, 99]]
-    lumi_quant_table = np.array(lumi_quant_table)
-    
-    chrom_quant_table = [[17, 18, 24, 47, 99, 99, 99, 99], 
-                         [18, 21, 26, 66, 99, 99, 99, 99], 
-                         [24, 26, 56, 99, 99, 99, 99, 99], 
-                         [47, 66, 99, 99, 99, 99, 99, 99],
-                         [99, 99, 99, 99, 99, 99, 99, 99],
-                         [99, 99, 99, 99, 99, 99, 99, 99], 
-                         [99, 99, 99, 99, 99, 99, 99, 99], 
-                         [99, 99, 99, 99, 99, 99, 99, 99]]
-    chrom_quant_table = np.array(chrom_quant_table)
-    
+def dctTransformation(blocks):    
     height, width = blocks.shape[:2]
     zigzag_table = np.zeros((height, width, 3, 64), dtype=np.int16)
     prev_dc_value = [0, 0, 0]
@@ -151,18 +72,20 @@ def dctTransformation(blocks):
     for i in range(0, height):
         for j in range(0, width):
             for channel in range(3):
-                if channel == 0:
-                    quant_table = lumi_quant_table
-                else:
-                    quant_table = chrom_quant_table
+                # if channel == 0:
+                #     quant_table = lumi_quant_table
+                # else:
+                #     quant_table = chrom_quant_table
                 
-                block = blocks[i, j, :, :, channel]
-                    # print("Wskaźnik: ", i, j, channel)
-                dct_block = dct(dct(block.T, norm='ortho').T, norm='ortho')
-                    # print(dct_block)
-                dct_blocks[i, j, :, :, channel] = dct_block
+                # block = blocks[i, j, :, :, channel]
+                #     # print("Wskaźnik: ", i, j, channel)
+                # dct_block = dct(dct(block.T, norm='ortho').T, norm='ortho')
+                #     # print(dct_block)
+                # dct_blocks[i, j, :, :, channel] = dct_block
                 for k in range(0, 8):
                     for l in range(0, 8):
+                        if k == 0 and l == 0:
+                            continue
                         dct_blocks[i, j, k, l, channel] = np.round(dct_blocks[i, j, k, l, channel]//quant_table[k, l])
                     # print("Block, channel: ", channel, "\n", block)
                 new_dc_value = dct_blocks[i, j, 0, 0, channel]
@@ -210,5 +133,4 @@ if __name__ == '__main__':
     blocks = prepareImage(path)
     dct_blocks = dctTransformation(blocks)
     # quantization(dct_blocks)
-
 
