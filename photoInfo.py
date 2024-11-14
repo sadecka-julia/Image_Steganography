@@ -189,7 +189,7 @@ def canWeReadMessageDCT(stego_folder, worksheet):
             print("________________", filename, "__________________", img.size)
             try:
                 mess = dctDecoding(path)
-                if mess.startswith(('0000448Lorem ipsum')):
+                if mess.startswith(('0006335Lorem ipsum')):
                     print(f'OK')
                     value = 'OK'
                 else:
@@ -350,20 +350,20 @@ def compareImagesJPEG(before_folder, after_folder, worksheet):
 
 
 if __name__ == '__main__':
-    workbook = xlsxwriter.Workbook('D:\STUDIA\Cyberka\Inzynierka\Wyniki_excel\Wyniki_DCT_JPEG.xlsx')    
+    workbook = xlsxwriter.Workbook('D:\STUDIA\Cyberka\Inzynierka\Wyniki_excel\Signal_mozna_dct.xlsx')    
     worksheet = workbook.add_worksheet("DCT")
     input_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Zbior_obrazow' 
     output_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbior_Stego'
-    facebook_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Signal_lsb'
+    facebook_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Signal_dct'
     after_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Signal_bez_info'
-    dct_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Zbior_DCT'
+    dct_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Zbior_DCT_mode5'
     mini_dct_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Mini_DCT'
     mini_folder = 'D:\STUDIA\Cyberka\Inzynierka\Zbiory\Mini_zbior'
     # processImagesInFolder(input_folder, output_folder)
     # canWeReadMessage(facebook_folder, worksheet)
     # changeNames(input_folder)
-    compareImagesJPEG(input_folder, dct_folder, worksheet)
+    # compareImagesJPEG(input_folder, dct_folder, worksheet)
     # makeStegoImageDCT(input_folder, dct_folder)
-    # canWeReadMessageDCT(dct_folder, worksheet)
+    canWeReadMessageDCT(facebook_folder, worksheet)
     workbook.close()
     # makeStegoImage(input_folder, output_folder)

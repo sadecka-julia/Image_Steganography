@@ -51,7 +51,7 @@ def prepareImage(path):
     return blocks
 
 
-def hideMessageInDCT(dct_blocks, message_in_bits):
+def hideMessageInDCT(dct_blocks, message_in_bits, mode=3):
     bit_index = 0
     height, width = dct_blocks.shape[:2]
     for i in range(height):
@@ -65,34 +65,83 @@ def hideMessageInDCT(dct_blocks, message_in_bits):
                     # zigzag = zigZagEncoding(block)
 
                     idx = 0 # Miejsce zakodowania wiadomości
-                    zigzag = int(dct_blocks[i, j, 0, 0, channel])
+                    # Ukrywamy w AC dlatego 0, 0
+                    change_bit = int(dct_blocks[i, j, 0, 0, channel])
+                    if mode==1:
+                        if int(message_in_bits[bit_index]) == 1:
+                            if change_bit % 2 == 0:
+                                change_bit += 1  # ustaw bit LSB na 1
+                        else:
+                            if change_bit % 2 != 0:
+                                change_bit -= 1
 
-                    if int(message_in_bits[bit_index]) == 0:
-                        if zigzag % 6 == 4:
-                            zigzag += 1
-                        elif zigzag % 6 == 0:
-                            zigzag -= 1
-                        elif zigzag % 6 == 1:
-                            zigzag -= 2
-                        elif zigzag % 6 == 2:
-                            zigzag += 3
-                        elif zigzag % 6 == 3:
-                            zigzag += 2
-                    else:
-                        if zigzag % 6 == 0:
-                            zigzag += 2
-                        elif zigzag % 6 == 1:
-                            zigzag += 1
-                        elif zigzag % 6 == 3:
-                            zigzag -= 1
-                        elif zigzag % 6 == 4:
-                            zigzag -= 2
-                        elif zigzag % 6 == 5:
-                            zigzag -= 3
+                    if mode==3:
+                        if int(message_in_bits[bit_index]) == 0:
+                            if change_bit % 6 == 4:
+                                change_bit += 1
+                            elif change_bit % 6 == 0:
+                                change_bit -= 1
+                            elif change_bit % 6 == 1:
+                                change_bit -= 2
+                            elif change_bit % 6 == 2:
+                                change_bit += 3
+                            elif change_bit % 6 == 3:
+                                change_bit += 2
+                        else:
+                            if change_bit % 6 == 0:
+                                change_bit += 2
+                            elif change_bit % 6 == 1:
+                                change_bit += 1
+                            elif change_bit % 6 == 3:
+                                change_bit -= 1
+                            elif change_bit % 6 == 4:
+                                change_bit -= 2
+                            elif change_bit % 6 == 5:
+                                change_bit -= 3
+                    
+                    if mode==5:
+                        if int(message_in_bits[bit_index]) == 0:
+                            if change_bit % 10 == 0:
+                                change_bit += 2
+                            elif change_bit % 10 == 1:
+                                change_bit += 1
+                            elif change_bit % 10 == 3:
+                                change_bit -= 1
+                            elif change_bit % 10 == 4:
+                                change_bit -= 2
+                            elif change_bit % 10 == 5:
+                                change_bit -= 3
+                            elif change_bit % 10 == 6:
+                                change_bit -= 4
+                            elif change_bit % 10 == 7:
+                                change_bit -= 5
+                            elif change_bit % 10 == 8:
+                                change_bit += 4
+                            elif change_bit % 10 == 9:
+                                change_bit += 3
+                        else:
+                            if change_bit % 10 == 0:
+                                change_bit -= 3
+                            elif change_bit % 10 == 1:
+                                change_bit -= 4
+                            elif change_bit % 10 == 2:
+                                change_bit -= 5
+                            elif change_bit % 10 == 3:
+                                change_bit += 4
+                            elif change_bit % 10 == 4:
+                                change_bit += 3
+                            elif change_bit % 10 == 5:
+                                change_bit += 2
+                            elif change_bit % 10 == 6:
+                                change_bit += 1
+                            elif change_bit % 10 == 8:
+                                change_bit -= 1
+                            elif change_bit % 10 == 9:
+                                change_bit -= 2
                     # print(f"Embedding bit {message_in_bits[bit_index]} at position ({i}, {j}, {channel}), coefficient {zigzag}")
                     # Aktualizacja współczynników po wprowadzeniu wiadomości
                     # block[0, 0] = zigzag[idx]
-                    dct_blocks[i, j, 0, 0, channel] = zigzag
+                    dct_blocks[i, j, 0, 0, channel] = change_bit
                     bit_index += 1
     return dct_blocks
 
@@ -201,11 +250,11 @@ def saveImage(image_data, output_path):
 
 def codeExampleMessageDCT(input_path, output_path):
     message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc at arcu lorem. Pellentesque iaculis, odio non volutpat consequat, velit lectus vehicula ipsum, a maximus metus tortor et metus. Donec massa elit, viverra id dignissim in, dignissim at ex. Suspendisse in faucibus nibh. Proin pretium sodales ante ut ultricies. Mauris vel diam iaculis, finibus tellus sit amet, convallis diam. Pellentesque et felis aliquam, finibus dolor at, commodo odio. In fringilla imperdiet lectus, eu rutrum ligula pulvinar nec. Sed malesuada tellus in sapien pellentesque pulvinar. Ut quis metus faucibus elit pretium aliquam. Vestibulum at nulla et risus tristique tincidunt. Nunc porttitor et eros feugiat consectetur. Suspendisse mauris elit, ultrices non risus nec, aliquet pretium purus. Vestibulum dignissim urna eget egestas porta. Aenean eget eros dapibus, fringilla nisi vel, tincidunt ex. Integer vitae vulputate nisi. Cras egestas sem lorem, vel maximus metus ultricies ac. Praesent lobortis egestas dignissim. Etiam porttitor faucibus erat. Curabitur dapibus sem at faucibus facilisis.Maecenas congue odio sed ultricies consectetur. Nullam venenatis orci ac diam maximus, nec elementum erat fermentum. Nullam nisl nibh, luctus id blandit at, luctus eu purus. Duis ultrices, velit eu consequat semper, arcu nisl dapibus elit, commodo egestas ante odio vitae justo. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse libero lectus, condimentum a eleifend pellentesque, ultrices a mi. Nam eu mi vehicula, porttitor eros varius, dictum justo. In fringilla vel purus eu ultrices. Donec imperdiet, nulla eget aliquam aliquet, diam eros iaculis erat, at venenatis nunc magna sollicitudin erat. Donec diam odio, hendrerit nec fermentum eu, fermentum non eros. Suspendisse sit amet augue nibh. Suspendisse eget magna at orci malesuada porttitor id et eros."
-    message2 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+    message2 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum dignissim urna eget egestas porta. Aenean eget eros dapibus, fringilla nisi vel, tincidunt ex. Integer vitae vulputate nisi. Cras egestas sem lorem, vel maximus metus ultricies ac. Praesent lobortis egestas dignissim. Etiam porttitor faucibus erat. Curabitur dapibus sem at faucibus facilisis.Maecenas congue odio sed ultricies consectetur. Nullam venenatis orci ac diam maximus, nec elementum erat fermentum. Nullam nisl nibh, luctus id blandit at, luctus eu purus. Duis ultrices, velit eu consequat semper, arcu nisl dapibus elit, commodo egestas ante odio vitae justo. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Suspendisse libero lectus, condimentum a eleifend pellentesque, ultrices a mi. Nam eu mi vehicula, porttitor eros varius, dictum justo. In fringilla vel purus eu ultrices."
     _, message_in_binary = convertToBinary(message2)
-    
+    print(len(message2), len(message_in_binary))
+
     blocks = prepareImage(input_path)
-    # print(len(message), len(message_in_binary))
     dct_blocks = dctTransformation(blocks)
     stego_dct_blocks = hideMessageInDCT(dct_blocks, message_in_binary)
     image_with_mess = inverseDCT(stego_dct_blocks)

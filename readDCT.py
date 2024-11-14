@@ -13,7 +13,7 @@ def convertToStringDCT(message_in_binary):
     # print(message)
     return message
 
-def extractBitsFromImage(image_path, mess_lenght):
+def extractBitsFromImage(image_path, mess_lenght, mode=3):
     # Dzieli na bloki 8x8 i odejmuje 128
     blocks = prepareImage(image_path)
     dct_blocks = dctTransformation(blocks)
@@ -32,10 +32,16 @@ def extractBitsFromImage(image_path, mess_lenght):
                     block = dct_blocks[i, j, :, :, channel]
                     # zigzag = zigZagEncoding(block)
                     value = int(dct_blocks[i, j, 0, 0, channel])
-                    if (value%6) in [4, 5, 0]:
-                        bit = 0
-                    else:
-                        bit = 1
+                    if mode==3:
+                        if (value%6) in [4, 5, 0]:
+                            bit = 0
+                        else:
+                            bit = 1
+                    if mode==5:
+                        if (value%10) in [0, 1, 2, 3, 4]:
+                            bit = 0
+                        else:
+                            bit = 1
 
                     # idx = 0
 
@@ -48,7 +54,7 @@ def extractBitsFromImage(image_path, mess_lenght):
     return extracted_bits
 
 def dctDecoding(stego_path):
-    bits = extractBitsFromImage(stego_path, 448)
+    bits = extractBitsFromImage(stego_path, 6335)
     mess = convertToStringDCT(bits)
     return mess
 
