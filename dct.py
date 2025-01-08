@@ -1,7 +1,6 @@
 from PIL import Image
 from scipy.fftpack import dct, idct
 import numpy as np
-from collections import Counter
 import cv2
 # from readDCT import extractBitsFromImage
 
@@ -51,7 +50,7 @@ def prepareImage(path):
     return blocks
 
 
-def hideMessageInDCT(dct_blocks, message_in_bits, mode=3):
+def hideMessageInDCT(dct_blocks, message_in_bits, mode=5):
     bit_index = 0
     height, width = dct_blocks.shape[:2]
     for i in range(height):
@@ -60,12 +59,6 @@ def hideMessageInDCT(dct_blocks, message_in_bits, mode=3):
                 if channel in [2]:
                     if bit_index >= len(message_in_bits):
                         return dct_blocks  # zakończ jeśli wszystkie bity zostały ukryte
-                    # block = dct_blocks[i, j, :, :, channel]
-
-                    # zigzag = zigZagEncoding(block)
-
-                    idx = 0 # Miejsce zakodowania wiadomości
-                    # Ukrywamy w AC dlatego 0, 0
                     change_bit = int(dct_blocks[i, j, 0, 0, channel])
                     if mode==1:
                         if int(message_in_bits[bit_index]) == 1:
@@ -138,48 +131,9 @@ def hideMessageInDCT(dct_blocks, message_in_bits, mode=3):
                                 change_bit -= 1
                             elif change_bit % 10 == 9:
                                 change_bit -= 2
-                    # print(f"Embedding bit {message_in_bits[bit_index]} at position ({i}, {j}, {channel}), coefficient {zigzag}")
-                    # Aktualizacja współczynników po wprowadzeniu wiadomości
-                    # block[0, 0] = zigzag[idx]
                     dct_blocks[i, j, 0, 0, channel] = change_bit
                     bit_index += 1
     return dct_blocks
-
-
-
-# Funkcja implementująca zig zag encoding - dzięki temu można odczytać bloki jako ciąg wartości
-def zigZagEncoding(block):
-    i, j = 0, 0
-    new_table = []
-    flag = True
-    while(flag):
-        new_table.append(block[i, j])
-
-        if i == 7 and j == 7:
-            flag = False
-        elif i == 0 and j%2==0:
-            j += 1
-            continue
-        elif i==7 and j%2==0:
-            j+=1
-            continue
-        elif j==0 and i%2==1:
-            i += 1
-            continue
-        elif j==7 and i%2==1:
-            i += 1
-            continue
-        elif (i-j)%2 ==0:
-            j+=1
-            i-=1
-            continue
-        elif (i-j)%2 ==1:
-            j-=1
-            i+=1
-            continue
-        else:
-            print("Error")
-    return new_table
 
 
 def dctTransformation(blocks, apply_quantization=False):
@@ -213,10 +167,15 @@ def dctTransformation(blocks, apply_quantization=False):
                     quant_table = lumi_quant_table
                 else:
                     quant_table = chrom_quant_table
+
+                
                 
                 block = blocks[i, j, :, :, channel]
+                
                 # dct_block = dct(dct(block.T, norm='ortho').T, norm='ortho')
                 dct_block = cv2.dct(block.astype(np.float32))
+                # print(dct_block)
+
 
                 if apply_quantization:
                     dct_block = np.round(dct_block / quant_table)
@@ -239,6 +198,7 @@ def inverseDCT(dct_blocks):
 
                 idct_block += 128
                 idct_block = np.clip(idct_block, 0, 255)
+                # print(idct_block)
                 image_reconstructed[i*8:(i+1)*8, j*8:(j+1)*8, channel] = idct_block
     return image_reconstructed
 
@@ -246,6 +206,7 @@ def inverseDCT(dct_blocks):
 def saveImage(image_data, output_path):
     # Konwersja z przestrzeni YCbCr do RGB dla zapisu
     # img = cv2.cvtColor(image_data, cv2.COLOR_YCrCb2BGR)
+    # print(image_data)
     cv2.imwrite(output_path, image_data)
 
 def codeExampleMessageDCT(input_path, output_path):
@@ -260,22 +221,86 @@ def codeExampleMessageDCT(input_path, output_path):
     image_with_mess = inverseDCT(stego_dct_blocks)
     saveImage(image_with_mess, output_path)
 
+    # powtórzenie w celu sprawdzenia czy lepiej zadziała po ponownej kompresji
+    # t_blocks = prepareImage(temp_path)
+    # t_dct_blocks = dctTransformation(t_blocks)
+    # t_stego_dct_blocks = hideMessageInDCT(t_dct_blocks, message_in_binary)
+    # t_image_with_mess = inverseDCT(t_stego_dct_blocks)
+    # saveImage(t_image_with_mess, output_path)
+
+
 
 
 
 if __name__ == '__main__':
     path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/Zdjecia/photo.jpg'
+    mini_path = "D:\STUDIA\Cyberka\Inzynierka\Zbiory\Zbior_8_dlaDCT\mini_JPG_20.jpg"
     output_path = 'd:/STUDIA/Cyberka/Inzynierka/Proby/Zdjecia/stego.png'
+    output_path2 = 'd:/STUDIA/Cyberka/Inzynierka/Proby/Zdjecia/stego2.png'
     message = "Hello World"
     # _, mess_in_binary = convertToBinary(message)
     # print(mess_in_binary, len(mess_in_binary))
 
     # blocks = prepareImage(path)
+    # # print("Bloki przed zmianą: ", blocks)
     # dct_blocks = dctTransformation(blocks)
+    # # print(f"DCT blocks: \n{dct_blocks}")
     # stego_dct_blocks = hideMessageInDCT(dct_blocks, mess_in_binary)
-    # # quantization(dct_blocks)
+    # # # quantization(dct_blocks)
 
     # image_with_mess = inverseDCT(stego_dct_blocks)
+    # # print("Bloki po iDCT")
     # saveImage(image_with_mess, output_path)
+
+    # o_blocks = prepareImage(output_path)
+    # # print("Bloki przed zmianą: ", blocks)
+    # o_dct_blocks = dctTransformation(o_blocks)
+    # # print(f"DCT blocks: \n{dct_blocks}")
+    # o_stego_dct_blocks = hideMessageInDCT(o_dct_blocks, mess_in_binary)
+    # # # quantization(dct_blocks)
+
+    # o_image_with_mess = inverseDCT(o_stego_dct_blocks)
+    # # print("Bloki po iDCT")
+    # saveImage(o_image_with_mess, output_path2)
+
+    # blocks2 = prepareImage(output_path)
+    # print(blocks2)
+    # print(mess_in_binary, len(mess_in_binary))
     codeExampleMessageDCT(path, output_path)
+
+
+
+# Funkcja implementująca zig zag encoding - dzięki temu można odczytać bloki jako ciąg wartości
+# def zigZagEncoding(block):
+#     i, j = 0, 0
+#     new_table = []
+#     flag = True
+#     while(flag):
+#         new_table.append(block[i, j])
+
+#         if i == 7 and j == 7:
+#             flag = False
+#         elif i == 0 and j%2==0:
+#             j += 1
+#             continue
+#         elif i==7 and j%2==0:
+#             j+=1
+#             continue
+#         elif j==0 and i%2==1:
+#             i += 1
+#             continue
+#         elif j==7 and i%2==1:
+#             i += 1
+#             continue
+#         elif (i-j)%2 ==0:
+#             j+=1
+#             i-=1
+#             continue
+#         elif (i-j)%2 ==1:
+#             j-=1
+#             i+=1
+#             continue
+#         else:
+#             print("Error")
+#     return new_table
 

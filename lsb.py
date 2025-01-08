@@ -118,6 +118,12 @@ def lsbDecoding(img_path):
             print("Błąd")
     return message[49:]
 
+def codeInputMessage():
+    message = input("Enter message to code in the image: \n")
+    message_in_binary = convertToBinary(message)
+    _, img = convertImage(path)
+    _, stego_img = lsbCoding(img, message_in_binary)
+    return stego_img
 
 # Funkcja zakodowująca przykładową wiadomość w obrazie i zapisująca wynik do pliku
 def codeExampleMessage(path):
@@ -128,12 +134,7 @@ def codeExampleMessage(path):
     _, stego_img = lsbCoding(img, message_in_binary)
     return stego_img
 
-def codeInputMessage():
-    message = input("Enter message to code in the image: \n")
-    message_in_binary = convertToBinary(message)
-    _, img = convertImage(path)
-    _, stego_img = lsbCoding(img, message_in_binary)
-    return stego_img
+
 
 
 if __name__ == '__main__':
